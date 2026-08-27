@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CreativaMoney</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+
+    <header class="topbar">
+      <div class="title-wrap">
+        <p class="eyebrow">Panel personal</p>
+        <div class="title-row">
+          <h1>CreativaMoney</h1>
+          <button id="openCalendar" class="calendar-button" type="button" aria-label="Abrir calendario">📅</button>
+        </div>
+      </div>
+      <button id="resetData" class="ghost-button" type="button">Resetear datos</button>
+    </header>
+
+    <main class="app-shell">
+      <section class="panel summary-panel">
+        <div class="summary-group">
+          <div class="summary-heading">
+            <h2>Todo el total</h2>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-card balance">
+              <span class="label">Balance total</span>
+              <strong id="totalBalance">$0.00</strong>
+            </div>
+            <div class="summary-card income">
+              <span class="label">Ingresos</span>
+              <strong id="incomeTotal">$0.00</strong>
+            </div>
+            <div class="summary-card expense">
+              <span class="label">Gastos</span>
+              <strong id="expenseTotal">$0.00</strong>
+            </div>
+            <div class="summary-card available">
+              <span class="label">Disponible</span>
+              <strong id="remainingBudget">$0.00</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-group">
+          <div class="summary-heading">
+            <h2 id="selectedDateLabel">Hoy</h2>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-card balance">
+              <span class="label">Balance del día</span>
+              <strong id="dayBalance">$0.00</strong>
+            </div>
+            <div class="summary-card income">
+              <span class="label">Ingresos del día</span>
+              <strong id="dayIncome">$0.00</strong>
+            </div>
+            <div class="summary-card expense">
+              <span class="label">Gastos del día</span>
+              <strong id="dayExpense">$0.00</strong>
+            </div>
+            <div class="summary-card available">
+              <span class="label">Disponible del día</span>
+              <strong id="dayAvailable">$0.00</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div id="resetModal" class="modal hidden" aria-hidden="true">
+        <div class="modal-backdrop" data-close="true"></div>
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+          <div class="modal-icon">!</div>
+          <h3 id="resetTitle">Restablecer datos</h3>
+          <p>Esta acción borrará todos los movimientos guardados y dejará la app vacía.</p>
+          <div class="modal-actions">
+            <button id="cancelReset" class="ghost-button secondary" type="button">Cancelar</button>
+            <button id="confirmReset" class="primary-button danger" type="button">Sí, restablecer</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="panel form-panel">
+        <div class="section-header">
+          <h2>Agregar movimiento</h2>
+        </div>
+
+        <form id="transactionForm">
+          <div class="field-group">
+            <label for="description">Descripción</label>
+            <input id="description" name="description" type="text" placeholder="Ej. Salario, supermercado..." maxlength="80" required />
+          </div>
+
+          <div class="field-row two-columns">
+            <div class="field-group">
+              <label for="amount">Cantidad</label>
+              <input id="amount" name="amount" type="number" step="0.01" min="0.01" placeholder="0.00" required />
+            </div>
+
+            <div class="field-group">
+              <label for="type">Tipo</label>
+              <select id="type" name="type">
+                <option value="income">Ingreso</option>
+                <option value="expense">Gasto</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row two-columns">
+            <div class="field-group">
+              <label for="category">Categoría</label>
+              <select id="category" name="category"></select>
+            </div>
+
+            <div class="field-group">
+              <label for="date">Fecha</label>
+              <input id="date" name="date" type="date" required />
+            </div>
+          </div>
+
+          <button class="primary-button" type="submit">Guardar movimiento</button>
+        </form>
+      </section>
+
+      <section class="panel list-panel">
+        <div class="section-header">
+          <div class="list-title-wrap">
+            <h2>Hoja del día</h2>
+            <span id="selectedDayText" class="selected-day-text">Hoy</span>
+          </div>
+          <select id="filterType" aria-label="Filtrar por tipo">
+            <option value="all">Todos</option>
+            <option value="income">Ingresos</option>
+            <option value="expense">Gastos</option>
+          </select>
+        </div>
+
+        <ul id="transactionList" class="transaction-list"></ul>
+      </section>
+
+      <aside class="panel categories-panel">
+        <div class="section-header">
+          <h2>Categorías</h2>
+        </div>
+        <div id="categorySummary" class="category-summary"></div>
+      </aside>
+    </main>
+
+    <div id="calendarModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendarTitle">
+        <div class="calendar-header">
+          <button id="prevMonth" class="calendar-nav" type="button" aria-label="Mes anterior">‹</button>
+          <h3 id="calendarTitle">Mes</h3>
+          <button id="nextMonth" class="calendar-nav" type="button" aria-label="Mes siguiente">›</button>
+        </div>
+        <div class="calendar-weekdays">
+          <span>Dom</span>
+          <span>Lun</span>
+          <span>Mar</span>
+          <span>Mié</span>
+          <span>Jue</span>
+          <span>Vie</span>
+          <span>Sáb</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
+    </div>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
