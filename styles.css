@@ -93,6 +93,42 @@ body {
   gap: 12px;
 }
 
+.side-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  color: #ec4fae;
+}
+
+.side-logo-heart {
+  font-family: Georgia, serif;
+  font-size: 4.6rem;
+  line-height: 0.7;
+  transform: rotate(-10deg);
+  text-shadow: 0 4px 12px rgba(236, 79, 174, 0.2);
+}
+
+.side-logo-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+}
+
+.side-logo-copy strong {
+  font-family: Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 500;
+  line-height: 0.82;
+}
+
+.side-logo-copy span {
+  font-size: 0.48rem;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+}
+
 .calendar-button {
   width: 42px;
   height: 42px;
@@ -277,6 +313,35 @@ h2 {
   gap: 16px;
 }
 
+.form-actions,
+.data-actions,
+.list-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.list-tools {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.list-tools input,
+.list-tools select {
+  width: auto;
+  min-width: 140px;
+  padding: 9px 11px;
+  font-size: 0.8rem;
+}
+
+.list-tools input {
+  min-width: 130px;
+}
+
+.hidden {
+  display: none !important;
+}
+
 .field-row {
   display: grid;
   gap: 16px;
@@ -451,6 +516,21 @@ select:focus {
   font-size: 0.75rem;
 }
 
+.edit-button {
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 163, 215, 0.14);
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  transform: translateY(-1px);
+}
+
 .category-summary {
   display: flex;
   flex-direction: column;
@@ -462,7 +542,6 @@ select:focus {
   border: 1px solid rgba(255, 163, 215, 0.12);
   border-radius: 14px;
   padding: 10px 12px;
-}
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -657,6 +736,12 @@ select:focus {
     align-items: flex-start;
   }
 
+  .side-logo {
+    order: 3;
+    align-self: center;
+    margin: 6px 0 0;
+  }
+
   .summary-panel,
   .two-columns {
     grid-template-columns: 1fr;
@@ -674,5 +759,20 @@ select:focus {
   .transaction-side {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .section-header,
+  .list-tools,
+  .data-actions,
+  .form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .list-tools input,
+  .list-tools select,
+  .data-actions button,
+  .form-actions button {
+    width: 100%;
   }
 }
