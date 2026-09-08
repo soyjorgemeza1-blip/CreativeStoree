@@ -16,6 +16,8 @@ const categoryOptions = {
     "Salud",
     "Educación",
     "Compras",
+    "Inversión",
+    "Cantidad de objetos",
     "Otros gastos",
   ],
 };
@@ -30,11 +32,17 @@ const defaultTransactions = [
 const transactionForm = document.getElementById("transactionForm");
 const transactionList = document.getElementById("transactionList");
 const filterType = document.getElementById("filterType");
+const filterCategory = document.getElementById("filterCategory");
+const searchTransactions = document.getElementById("searchTransactions");
 const categorySelect = document.getElementById("category");
 const typeSelect = document.getElementById("type");
 const descriptionInput = document.getElementById("description");
 const amountInput = document.getElementById("amount");
+const quantityInput = document.getElementById("quantity");
 const dateInput = document.getElementById("date");
+const formTitle = document.getElementById("formTitle");
+const submitTransaction = document.getElementById("submitTransaction");
+const cancelEditButton = document.getElementById("cancelEdit");
 const resetButton = document.getElementById("resetData");
 const resetModal = document.getElementById("resetModal");
 const confirmResetButton = document.getElementById("confirmReset");
@@ -47,6 +55,9 @@ const prevMonthButton = document.getElementById("prevMonth");
 const nextMonthButton = document.getElementById("nextMonth");
 const selectedDateLabel = document.getElementById("selectedDateLabel");
 const selectedDayText = document.getElementById("selectedDayText");
+const exportDataButton = document.getElementById("exportData");
+const importDataButton = document.getElementById("importData");
+const importFileInput = document.getElementById("importFile");
 
 const moneyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
@@ -55,6 +66,7 @@ const moneyFormatter = new Intl.NumberFormat("es-MX", {
 });
 
 let transactions = loadTransactions();
+let editingTransactionId = null;
 let selectedDate = toISODate(new Date());
 let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
@@ -96,6 +108,16 @@ function updateCategoryOptions(selectedType = typeSelect.value) {
     .join("");
 }
 
+function updateCategoryFilter() {
+  const currentCategory = filterCategory.value;
+  const categories = [...new Set(transactions.map((item) => item.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  filterCategory.innerHTML = '<option value="all">Todas las categorías</option>';
+  categories.forEach((category) => {
+    filterCategory.insertAdjacentHTML("beforeend", `<option value="${category}">${category}</option>`);
+  });
+  filterCategory.value = categories.includes(currentCategory) ? currentCategory : "all";
+}
+
 function formatDate(dateString) {
   const date = new Date(dateString + "T12:00:00");
   return new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short", year: "numeric" }).format(date);
@@ -133,9 +155,13 @@ function renderSummary() {
 
 function renderTransactions() {
   const selectedFilter = filterType.value;
+  const selectedCategory = filterCategory.value;
+  const searchTerm = searchTransactions.value.trim().toLocaleLowerCase();
   const filteredTransactions = transactions
     .filter((item) => item.date === selectedDate)
     .filter((item) => selectedFilter === "all" || item.type === selectedFilter)
+    .filter((item) => selectedCategory === "all" || item.category === selectedCategory)
+    .filter((item) => !searchTerm || `${item.description} ${item.category}`.toLocaleLowerCase().includes(searchTerm))
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
   if (!filteredTransactions.length) {
@@ -153,6 +179,7 @@ function renderTransactions() {
               <span>${transaction.description}</span>
             </div>
             <div class="transaction-meta">
+              ${transaction.quantity ? `<span>${transaction.quantity} objeto${transaction.quantity === 1 ? "" : "s"}</span><span>•</span>` : ""}
               <span>${transaction.category}</span>
               <span>•</span>
               <span>${formatDate(transaction.date)}</span>
@@ -162,6 +189,7 @@ function renderTransactions() {
           <div class="transaction-side">
             <span class="transaction-amount">${transaction.type === "income" ? "+" : "-"}${moneyFormatter.format(transaction.amount)}</span>
             <button class="delete-button" type="button" data-id="${transaction.id}">Eliminar</button>
+            <button class="edit-button" type="button" data-edit-id="${transaction.id}">Editar</button>
           </div>
         </li>
       `,
@@ -235,6 +263,7 @@ function renderCalendar() {
 }
 
 function renderApp() {
+  updateCategoryFilter();
   renderSummary();
   renderTransactions();
   renderCategorySummary();
@@ -258,47 +287,78 @@ function resetAppData() {
   renderApp();
 }
 
+function resetTransactionForm() {
+  editingTransactionId = null;
+  transactionForm.reset();
+  formTitle.textContent = "Agregar movimiento";
+  submitTransaction.textContent = "Guardar movimiento";
+  cancelEditButton.classList.add("hidden");
+  dateInput.value = toISODate(new Date());
+  typeSelect.value = "income";
+  updateCategoryOptions("income");
+}
+
+function startEditing(transaction) {
+  editingTransactionId = transaction.id;
+  descriptionInput.value = transaction.description;
+  amountInput.value = transaction.amount;
+  quantityInput.value = transaction.quantity || "";
+  typeSelect.value = transaction.type;
+  updateCategoryOptions(transaction.type);
+  categorySelect.value = transaction.category;
+  dateInput.value = transaction.date;
+  formTitle.textContent = "Editar movimiento";
+  submitTransaction.textContent = "Actualizar movimiento";
+  cancelEditButton.classList.remove("hidden");
+  transactionForm.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 transactionForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const description = descriptionInput.value.trim();
   const amount = Number(amountInput.value);
+  const quantity = Number(quantityInput.value);
   const type = typeSelect.value;
   const category = categorySelect.value;
   const date = dateInput.value;
 
-  if (!description || !amount || !date) {
+  if (!description || !amount || !quantity || !date) {
     window.alert("Completa todos los campos antes de guardar.");
     return;
   }
 
-  transactions.push({
-    id: Date.now(),
-    description,
-    amount,
-    type,
-    category,
-    date,
-  });
+  const transactionData = { description, amount, quantity, type, category, date };
+  if (editingTransactionId === null) {
+    transactions.push({ id: Date.now(), ...transactionData });
+  } else {
+    transactions = transactions.map((item) => item.id === editingTransactionId ? { ...item, ...transactionData } : item);
+  }
 
   selectedDate = date;
   calendarMonth = new Date(date + "T12:00:00");
   saveTransactions();
   renderApp();
-  transactionForm.reset();
-  dateInput.value = toISODate(new Date());
-  typeSelect.value = "income";
-  updateCategoryOptions("income");
+  resetTransactionForm();
   descriptionInput.focus();
 });
 
 filterType.addEventListener("change", renderTransactions);
+filterCategory.addEventListener("change", renderTransactions);
+searchTransactions.addEventListener("input", renderTransactions);
 
 typeSelect.addEventListener("change", (event) => {
   updateCategoryOptions(event.target.value);
 });
 
 transactionList.addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-edit-id]");
+  if (editButton) {
+    const transaction = transactions.find((item) => item.id === Number(editButton.dataset.editId));
+    if (transaction) startEditing(transaction);
+    return;
+  }
+
   const button = event.target.closest("[data-id]");
   if (!button) return;
 
@@ -307,6 +367,39 @@ transactionList.addEventListener("click", (event) => {
   transactions = transactions.filter((item) => item.id !== itemId);
   saveTransactions();
   renderApp();
+});
+
+cancelEditButton.addEventListener("click", resetTransactionForm);
+
+exportDataButton.addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(transactions, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `creativa-money-${toISODate(new Date())}.json`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+
+importDataButton.addEventListener("click", () => importFileInput.click());
+
+importFileInput.addEventListener("change", async () => {
+  const [file] = importFileInput.files;
+  if (!file) return;
+
+  try {
+    const importedTransactions = JSON.parse(await file.text());
+    if (!Array.isArray(importedTransactions) || importedTransactions.some((item) => !item.description || !item.amount || !item.type || !item.date)) {
+      throw new Error("Formato inválido");
+    }
+    transactions = importedTransactions;
+    saveTransactions();
+    renderApp();
+    window.alert("Datos importados correctamente.");
+  } catch (error) {
+    window.alert("No se pudo importar el archivo. Usa un respaldo JSON válido.");
+  } finally {
+    importFileInput.value = "";
+  }
 });
 
 resetButton.addEventListener("click", openResetModal);
