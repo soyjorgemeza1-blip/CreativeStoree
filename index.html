@@ -21,6 +21,13 @@
           <button id="openCalendar" class="calendar-button" type="button" aria-label="Abrir calendario">📅</button>
         </div>
       </div>
+      <div class="side-logo" aria-label="Creativa Storee, estudio y tienda de regalos personalizados">
+        <div class="side-logo-heart" aria-hidden="true">♡</div>
+        <div class="side-logo-copy">
+          <strong>Creativa<br />Storee</strong>
+          <span>ESTUDIO Y TIENDA DE REGALOS<br />PERSONALIZADOS</span>
+        </div>
+      </div>
       <button id="resetData" class="ghost-button" type="button">Resetear datos</button>
     </header>
 
@@ -90,7 +97,7 @@
 
       <section class="panel form-panel">
         <div class="section-header">
-          <h2>Agregar movimiento</h2>
+          <h2 id="formTitle">Agregar movimiento</h2>
         </div>
 
         <form id="transactionForm">
@@ -101,10 +108,17 @@
 
           <div class="field-row two-columns">
             <div class="field-group">
-              <label for="amount">Cantidad</label>
+              <label for="amount">Costo</label>
               <input id="amount" name="amount" type="number" step="0.01" min="0.01" placeholder="0.00" required />
             </div>
 
+            <div class="field-group">
+              <label for="quantity">Cantidad de objetos</label>
+              <input id="quantity" name="quantity" type="number" step="1" min="1" placeholder="1" required />
+            </div>
+          </div>
+
+          <div class="field-row two-columns">
             <div class="field-group">
               <label for="type">Tipo</label>
               <select id="type" name="type">
@@ -112,21 +126,22 @@
                 <option value="expense">Gasto</option>
               </select>
             </div>
-          </div>
 
-          <div class="field-row two-columns">
             <div class="field-group">
               <label for="category">Categoría</label>
               <select id="category" name="category"></select>
             </div>
-
-            <div class="field-group">
-              <label for="date">Fecha</label>
-              <input id="date" name="date" type="date" required />
-            </div>
           </div>
 
-          <button class="primary-button" type="submit">Guardar movimiento</button>
+          <div class="field-group">
+            <label for="date">Fecha</label>
+            <input id="date" name="date" type="date" required />
+          </div>
+
+          <div class="form-actions">
+            <button id="submitTransaction" class="primary-button" type="submit">Guardar movimiento</button>
+            <button id="cancelEdit" class="ghost-button hidden" type="button">Cancelar edición</button>
+          </div>
         </form>
       </section>
 
@@ -136,11 +151,17 @@
             <h2>Hoja del día</h2>
             <span id="selectedDayText" class="selected-day-text">Hoy</span>
           </div>
-          <select id="filterType" aria-label="Filtrar por tipo">
-            <option value="all">Todos</option>
-            <option value="income">Ingresos</option>
-            <option value="expense">Gastos</option>
-          </select>
+          <div class="list-tools">
+            <input id="searchTransactions" type="search" placeholder="Buscar..." aria-label="Buscar movimientos" />
+            <select id="filterCategory" aria-label="Filtrar por categoría">
+              <option value="all">Todas las categorías</option>
+            </select>
+            <select id="filterType" aria-label="Filtrar por tipo">
+              <option value="all">Todos</option>
+              <option value="income">Ingresos</option>
+              <option value="expense">Gastos</option>
+            </select>
+          </div>
         </div>
 
         <ul id="transactionList" class="transaction-list"></ul>
@@ -149,6 +170,11 @@
       <aside class="panel categories-panel">
         <div class="section-header">
           <h2>Categorías</h2>
+          <div class="data-actions">
+            <button id="exportData" class="ghost-button" type="button">Exportar</button>
+            <button id="importData" class="ghost-button" type="button">Importar</button>
+            <input id="importFile" type="file" accept="application/json" hidden />
+          </div>
         </div>
         <div id="categorySummary" class="category-summary"></div>
       </aside>
@@ -178,4 +204,5 @@
     <script src="script.js" defer></script>
   </body>
 </html>
+
 
